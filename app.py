@@ -72,12 +72,13 @@ def normalize_ids(conn):
 
 
 # -------------------------------------------------
-# Create Database Table
+# Create / Update Database Table
 # -------------------------------------------------
 def init_db():
 
     conn = get_db()
 
+    # Create table if it does not exist
     conn.execute("""
         CREATE TABLE IF NOT EXISTS students (
             id SERIAL PRIMARY KEY,
@@ -88,6 +89,9 @@ def init_db():
             email TEXT,
             phone TEXT,
             city TEXT,
+
+            year TEXT,
+            semester TEXT,
 
             course_fee REAL DEFAULT 0,
             last_fee_date TEXT,
@@ -102,8 +106,21 @@ def init_db():
         )
     """)
 
+    # -------------------------------------------------
+    # Add new columns to existing database
+    # -------------------------------------------------
+    conn.execute("""
+        ALTER TABLE students
+        ADD COLUMN IF NOT EXISTS year TEXT
+    """)
+
+    conn.execute("""
+        ALTER TABLE students
+        ADD COLUMN IF NOT EXISTS semester TEXT
+    """)
+
     # Existing gaps like 1,2,3,5,8,9
-    # will automatically become 1,2,3,4,5,6
+    # become 1,2,3,4,5,6...
     normalize_ids(conn)
 
     conn.commit()
@@ -142,6 +159,9 @@ def add_student():
 
         next_id = result["next_id"]
 
+        # ---------------------------------------------
+        # Student Details
+        # ---------------------------------------------
         name = request.form["name"]
         father_name = request.form["father_name"]
         roll_no = request.form["roll_no"]
@@ -150,12 +170,28 @@ def add_student():
         phone = request.form["phone"]
         city = request.form["city"]
 
-        course_fee = float(request.form.get("course_fee") or 0)
+        # NEW
+        year = request.form.get("year") or ""
+        semester = request.form.get("semester") or ""
 
-        last_fee_date = request.form.get("last_fee_date") or ""
-        fee_paid_date = request.form.get("fee_paid_date") or ""
+        # ---------------------------------------------
+        # Fee Details
+        # ---------------------------------------------
+        course_fee = float(
+            request.form.get("course_fee") or 0
+        )
 
-        fee_paid = float(request.form.get("fee_paid") or 0)
+        last_fee_date = (
+            request.form.get("last_fee_date") or ""
+        )
+
+        fee_paid_date = (
+            request.form.get("fee_paid_date") or ""
+        )
+
+        fee_paid = float(
+            request.form.get("fee_paid") or 0
+        )
 
         late_days = 0
         fine_per_day = 50
@@ -163,15 +199,19 @@ def add_student():
         total_payable = course_fee
         remaining_fee = 0
 
-        # Calculate late fee
+        # ---------------------------------------------
+        # Calculate Late Fee
+        # ---------------------------------------------
         if last_fee_date and fee_paid_date:
 
             last_date = datetime.strptime(
-                last_fee_date, "%Y-%m-%d"
+                last_fee_date,
+                "%Y-%m-%d"
             )
 
             paid_date = datetime.strptime(
-                fee_paid_date, "%Y-%m-%d"
+                fee_paid_date,
+                "%Y-%m-%d"
             )
 
             late_days = max(
@@ -179,15 +219,22 @@ def add_student():
                 0
             )
 
-            total_fine = late_days * fine_per_day
+            total_fine = (
+                late_days * fine_per_day
+            )
 
-            total_payable = course_fee + total_fine
+            total_payable = (
+                course_fee + total_fine
+            )
 
         remaining_fee = max(
             total_payable - fee_paid,
             0
         )
 
+        # ---------------------------------------------
+        # Insert Student
+        # ---------------------------------------------
         conn.execute("""
             INSERT INTO students (
                 id,
@@ -198,6 +245,8 @@ def add_student():
                 email,
                 phone,
                 city,
+                year,
+                semester,
                 course_fee,
                 last_fee_date,
                 fee_paid_date,
@@ -210,6 +259,7 @@ def add_student():
             )
             VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
         """, (
@@ -221,6 +271,8 @@ def add_student():
             email,
             phone,
             city,
+            year,
+            semester,
             course_fee,
             last_fee_date,
             fee_paid_date,
@@ -243,24 +295,60 @@ def add_student():
 
 
 # -------------------------------------------------
-# SHOW STUDENTS
+# SHOW STUDENTS + SEARCH
 # -------------------------------------------------
 @app.route("/students")
 def students():
 
     conn = get_db()
 
-    students = conn.execute("""
-        SELECT *
-        FROM students
-        ORDER BY id
-    """).fetchall()
+    # Search text
+    search = request.args.get("search", "").strip()
+
+    if search:
+
+        search_pattern = f"%{search}%"
+
+        students = conn.execute("""
+            SELECT *
+            FROM students
+            WHERE
+                name ILIKE %s
+                OR father_name ILIKE %s
+                OR roll_no ILIKE %s
+                OR course ILIKE %s
+                OR email ILIKE %s
+                OR phone ILIKE %s
+                OR city ILIKE %s
+                OR year ILIKE %s
+                OR semester ILIKE %s
+            ORDER BY id
+        """, (
+            search_pattern,
+            search_pattern,
+            search_pattern,
+            search_pattern,
+            search_pattern,
+            search_pattern,
+            search_pattern,
+            search_pattern,
+            search_pattern
+        )).fetchall()
+
+    else:
+
+        students = conn.execute("""
+            SELECT *
+            FROM students
+            ORDER BY id
+        """).fetchall()
 
     conn.close()
 
     return render_template(
         "students.html",
-        students=students
+        students=students,
+        search=search
     )
 
 
@@ -295,22 +383,31 @@ def edit_student(id):
             <a href="/students">Back to Students</a>
             """
 
+        # ---------------------------------------------
         # Current IDs
+        # ---------------------------------------------
         rows = conn.execute("""
             SELECT id
             FROM students
             ORDER BY id
         """).fetchall()
 
-        ordered_ids = [row["id"] for row in rows]
+        ordered_ids = [
+            row["id"]
+            for row in rows
+        ]
 
         # Move current student to new position
         ordered_ids.remove(id)
-        ordered_ids.insert(new_id - 1, id)
 
-        # -----------------------------------------
+        ordered_ids.insert(
+            new_id - 1,
+            id
+        )
+
+        # ---------------------------------------------
         # Temporary negative IDs
-        # -----------------------------------------
+        # ---------------------------------------------
         for old_id in ordered_ids:
 
             temp_id = -2000000 - old_id
@@ -319,11 +416,14 @@ def edit_student(id):
                 UPDATE students
                 SET id = %s
                 WHERE id = %s
-            """, (temp_id, old_id))
+            """, (
+                temp_id,
+                old_id
+            ))
 
-        # -----------------------------------------
+        # ---------------------------------------------
         # Give final continuous IDs
-        # -----------------------------------------
+        # ---------------------------------------------
         for position, old_id in enumerate(
             ordered_ids,
             start=1
@@ -335,11 +435,14 @@ def edit_student(id):
                 UPDATE students
                 SET id = %s
                 WHERE id = %s
-            """, (position, temp_id))
+            """, (
+                position,
+                temp_id
+            ))
 
-        # -----------------------------------------
-        # Student details
-        # -----------------------------------------
+        # ---------------------------------------------
+        # Student Details
+        # ---------------------------------------------
         name = request.form["name"]
         father_name = request.form["father_name"]
         roll_no = request.form["roll_no"]
@@ -348,17 +451,24 @@ def edit_student(id):
         phone = request.form["phone"]
         city = request.form["city"]
 
+        # NEW
+        year = request.form.get("year") or ""
+        semester = request.form.get("semester") or ""
+
+        # ---------------------------------------------
+        # Fee Details
+        # ---------------------------------------------
         course_fee = float(
             request.form.get("course_fee") or 0
         )
 
-        last_fee_date = request.form.get(
-            "last_fee_date"
-        ) or ""
+        last_fee_date = (
+            request.form.get("last_fee_date") or ""
+        )
 
-        fee_paid_date = request.form.get(
-            "fee_paid_date"
-        ) or ""
+        fee_paid_date = (
+            request.form.get("fee_paid_date") or ""
+        )
 
         fee_paid = float(
             request.form.get("fee_paid") or 0
@@ -369,6 +479,9 @@ def edit_student(id):
         total_fine = 0
         total_payable = course_fee
 
+        # ---------------------------------------------
+        # Calculate Late Fee
+        # ---------------------------------------------
         if last_fee_date and fee_paid_date:
 
             last_date = datetime.strptime(
@@ -399,7 +512,9 @@ def edit_student(id):
             0
         )
 
-        # Update selected student
+        # ---------------------------------------------
+        # Update Student
+        # ---------------------------------------------
         conn.execute("""
             UPDATE students
             SET
@@ -410,6 +525,8 @@ def edit_student(id):
                 email = %s,
                 phone = %s,
                 city = %s,
+                year = %s,
+                semester = %s,
                 course_fee = %s,
                 last_fee_date = %s,
                 fee_paid_date = %s,
@@ -428,6 +545,8 @@ def edit_student(id):
             email,
             phone,
             city,
+            year,
+            semester,
             course_fee,
             last_fee_date,
             fee_paid_date,
@@ -447,12 +566,16 @@ def edit_student(id):
 
         return redirect("/students")
 
+    # ---------------------------------------------
     # GET
+    # ---------------------------------------------
     student = conn.execute("""
         SELECT *
         FROM students
         WHERE id = %s
-    """, (id,)).fetchone()
+    """, (
+        id,
+    )).fetchone()
 
     conn.close()
 
@@ -473,15 +596,16 @@ def delete_student(id):
     conn.execute("""
         DELETE FROM students
         WHERE id = %s
-    """, (id,))
+    """, (
+        id,
+    ))
 
-    # IMPORTANT:
-    # After deleting, IDs become continuous
-    # Example:
+    # After deleting:
     # 1,2,3,4,5
     # delete 3
     # becomes:
     # 1,2,3,4
+
     normalize_ids(conn)
 
     conn.commit()
