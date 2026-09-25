@@ -6,31 +6,65 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f2f2f2;
+            background-color: #f2f2f2;
             margin: 0;
+            padding: 20px;
         }
 
         .container {
             width: 98%;
-            margin: 30px auto;
+            margin: auto;
             background: white;
             padding: 20px;
             border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
         h1 {
             text-align: center;
+            color: #333;
         }
 
-        .top-links {
+        .top-buttons {
             margin-bottom: 20px;
         }
 
-        .top-links a {
+        .top-buttons a {
             display: inline-block;
             padding: 10px 15px;
             margin-right: 5px;
-            background: #007bff;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        .search-box button {
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .clear-btn {
+            padding: 12px 20px;
+            background-color: #6c757d;
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -43,35 +77,64 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1500px;
-        }
-
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-            white-space: nowrap;
+            min-width: 1900px;
         }
 
         th {
-            background: #007bff;
+            background-color: #007bff;
             color: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
         }
 
-        .edit {
-            background: green;
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        .edit-btn {
+            background-color: #28a745;
             color: white;
-            padding: 6px 10px;
+            padding: 7px 10px;
             text-decoration: none;
             border-radius: 4px;
         }
 
-        .delete {
-            background: red;
+        .delete-btn {
+            background-color: #dc3545;
             color: white;
-            padding: 6px 10px;
+            padding: 7px 10px;
             text-decoration: none;
             border-radius: 4px;
+        }
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-box button,
+            .clear-btn {
+                width: 100%;
+                text-align: center;
+                box-sizing: border-box;
+            }
         }
     </style>
 </head>
@@ -82,38 +145,78 @@
 
     <h1>Student Records</h1>
 
-    <div class="top-links">
+    <div class="top-buttons">
         <a href="/add">Add New Student</a>
         <a href="/">Back Home</a>
     </div>
+
+    <!-- SEARCH -->
+
+    <form method="GET"
+          action="/students"
+          class="search-box">
+
+        <input
+            type="text"
+            name="search"
+            value="{{ search }}"
+            placeholder="Search by Name, Roll No, Course, Email, Phone, City, Year or Semester">
+
+        <button type="submit">
+            Search
+        </button>
+
+        <a href="/students"
+           class="clear-btn">
+            Clear
+        </a>
+
+    </form>
+
 
     <div class="table-container">
 
         <table>
 
             <thead>
+
                 <tr>
+
                     <th>ID</th>
                     <th>Name</th>
                     <th>Father Name</th>
                     <th>Roll No</th>
                     <th>Course</th>
+                    <th>Year</th>
+                    <th>Semester</th>
                     <th>Email</th>
                     <th>Phone</th>
                     <th>City</th>
 
                     <th>Course Fee</th>
+
                     <th>Last Fee Date</th>
+
                     <th>Fee Paid Date</th>
+
                     <th>Late Days</th>
-                    <th>Fine Per Day</th>
+
+                    <th>Fine / Day</th>
+
                     <th>Total Fine</th>
+
                     <th>Total Payable</th>
+
                     <th>Fee Paid</th>
+
                     <th>Remaining Fee</th>
+
                     <th>Action</th>
+
                 </tr>
+
             </thead>
+
 
             <tbody>
 
@@ -121,36 +224,95 @@
 
                 <tr>
 
-                    <td>{{ student['id'] }}</td>
-                    <td>{{ student['name'] }}</td>
-                    <td>{{ student['father_name'] }}</td>
-                    <td>{{ student['roll_no'] }}</td>
-                    <td>{{ student['course'] }}</td>
-                    <td>{{ student['email'] }}</td>
-                    <td>{{ student['phone'] }}</td>
-                    <td>{{ student['city'] }}</td>
+                    <td>{{ student.id }}</td>
 
-                    <td>{{ student['course_fee'] }}</td>
-                    <td>{{ student['last_fee_date'] }}</td>
-                    <td>{{ student['fee_paid_date'] }}</td>
-                    <td>{{ student['late_days'] }}</td>
-                    <td>{{ student['fine_per_day'] }}</td>
-                    <td>{{ student['total_fine'] }}</td>
-                    <td>{{ student['total_payable'] }}</td>
-                    <td>{{ student['fee_paid'] }}</td>
-                    <td>{{ student['remaining_fee'] }}</td>
+                    <td>{{ student.name }}</td>
+
+                    <td>{{ student.father_name }}</td>
+
+                    <td>{{ student.roll_no }}</td>
+
+                    <td>{{ student.course }}</td>
+
+                    <td>{{ student.year }}</td>
+
+                    <td>{{ student.semester }}</td>
+
+                    <td>{{ student.email }}</td>
+
+                    <td>{{ student.phone }}</td>
+
+                    <td>{{ student.city }}</td>
+
 
                     <td>
-                        <a class="edit"
-                           href="/edit/{{ student['id'] }}">
+                        ₹{{ "%.2f"|format(student.course_fee or 0) }}
+                    </td>
+
+
+                    <td>
+                        {{ student.last_fee_date or "-" }}
+                    </td>
+
+
+                    <td>
+                        {{ student.fee_paid_date or "-" }}
+                    </td>
+
+
+                    <td>
+                        {{ student.late_days or 0 }} Days
+                    </td>
+
+
+                    <td>
+                        ₹{{ "%.2f"|format(student.fine_per_day or 50) }}
+                    </td>
+
+
+                    <td>
+                        ₹{{ "%.2f"|format(student.total_fine or 0) }}
+                    </td>
+
+
+                    <td>
+                        ₹{{ "%.2f"|format(student.total_payable or 0) }}
+                    </td>
+
+
+                    <td>
+                        ₹{{ "%.2f"|format(student.fee_paid or 0) }}
+                    </td>
+
+
+                    <td>
+                        ₹{{ "%.2f"|format(student.remaining_fee or 0) }}
+                    </td>
+
+
+                    <td>
+
+                        <a href="/edit/{{ student.id }}"
+                           class="edit-btn">
                             Edit
                         </a>
 
-                        <a class="delete"
-                           href="/delete/{{ student['id'] }}"
+                        <a href="/delete/{{ student.id }}"
+                           class="delete-btn"
                            onclick="return confirm('Are you sure you want to delete this student?');">
                             Delete
                         </a>
+
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+
+                    <td colspan="20">
+                        No students found.
                     </td>
 
                 </tr>
