@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Records</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f2f2;
+            margin: 0;
+        }
+
+        .container {
+            width: 98%;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .top-links {
+            margin-bottom: 20px;
+        }
+
+        .top-links a {
+            display: inline-block;
+            padding: 10px 15px;
+            margin-right: 5px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1500px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+        }
+
+        .edit {
+            background: green;
+            color: white;
+            padding: 6px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .delete {
+            background: red;
+            color: white;
+            padding: 6px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Student Records</h1>
+
+    <div class="top-links">
+        <a href="/add">Add New Student</a>
+        <a href="/">Back Home</a>
+    </div>
+
+    <div class="table-container">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Father Name</th>
+                    <th>Roll No</th>
+                    <th>Course</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+
+                    <th>Course Fee</th>
+                    <th>Last Fee Date</th>
+                    <th>Fee Paid Date</th>
+                    <th>Late Days</th>
+                    <th>Fine Per Day</th>
+                    <th>Total Fine</th>
+                    <th>Total Payable</th>
+                    <th>Fee Paid</th>
+                    <th>Remaining Fee</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for student in students %}
+
+                <tr>
+
+                    <td>{{ student['id'] }}</td>
+                    <td>{{ student['name'] }}</td>
+                    <td>{{ student['father_name'] }}</td>
+                    <td>{{ student['roll_no'] }}</td>
+                    <td>{{ student['course'] }}</td>
+                    <td>{{ student['email'] }}</td>
+                    <td>{{ student['phone'] }}</td>
+                    <td>{{ student['city'] }}</td>
+
+                    <td>{{ student['course_fee'] }}</td>
+                    <td>{{ student['last_fee_date'] }}</td>
+                    <td>{{ student['fee_paid_date'] }}</td>
+                    <td>{{ student['late_days'] }}</td>
+                    <td>{{ student['fine_per_day'] }}</td>
+                    <td>{{ student['total_fine'] }}</td>
+                    <td>{{ student['total_payable'] }}</td>
+                    <td>{{ student['fee_paid'] }}</td>
+                    <td>{{ student['remaining_fee'] }}</td>
+
+                    <td>
+                        <a class="edit"
+                           href="/edit/{{ student['id'] }}">
+                            Edit
+                        </a>
+
+                        <a class="delete"
+                           href="/delete/{{ student['id'] }}"
+                           onclick="return confirm('Are you sure you want to delete this student?');">
+                            Delete
+                        </a>
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</body>
+</html>
