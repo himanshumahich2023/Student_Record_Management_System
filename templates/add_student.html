@@ -1,59 +1,118 @@
 </div>
 
+<!-- Automatic Fee Calculation -->
+<div class="form-group">
+    <label>Late Days</label>
+    <input type="text" id="late_days_display" readonly>
+</div>
+
+<div class="form-group">
+    <label>Fine Per Day</label>
+    <input type="text" id="fine_per_day_display" value="₹50" readonly>
+</div>
+
+<div class="form-group">
+    <label>Total Fine</label>
+    <input type="text" id="total_fine_display" readonly>
+</div>
+
+<div class="form-group">
+    <label>Total Payable</label>
+    <input type="text" id="total_payable_display" readonly>
+</div>
+
+<div class="form-group">
+    <label>Remaining Fee</label>
+    <input type="text" id="remaining_fee_display" readonly>
+</div>
+
 <script>
 function calculateFee() {
-    const courseFee = parseFloat(
-        document.querySelector('[name="course_fee"]').value
-    ) || 0;
 
-    const lastFeeDate = document.querySelector('[name="last_fee_date"]').value;
-    const feePaidDate = document.querySelector('[name="fee_paid_date"]').value;
+    const courseFeeElement =
+        document.querySelector('[name="course_fee"]');
 
-    const feePaid = parseFloat(
-        document.querySelector('[name="fee_paid"]').value
-    ) || 0;
+    const lastFeeDateElement =
+        document.querySelector('[name="last_fee_date"]');
+
+    const feePaidDateElement =
+        document.querySelector('[name="fee_paid_date"]');
+
+    const feePaidElement =
+        document.querySelector('[name="fee_paid"]');
+
+    const courseFee =
+        parseFloat(courseFeeElement.value) || 0;
+
+    const lastFeeDate =
+        lastFeeDateElement.value;
+
+    const feePaidDate =
+        feePaidDateElement.value;
+
+    const feePaid =
+        parseFloat(feePaidElement.value) || 0;
 
     const finePerDay = 50;
 
     let lateDays = 0;
 
     if (lastFeeDate && feePaidDate) {
-        const lastDate = new Date(lastFeeDate);
-        const paidDate = new Date(feePaidDate);
 
-        const difference = paidDate - lastDate;
+        const lastDate =
+            new Date(lastFeeDate + "T00:00:00");
+
+        const paidDate =
+            new Date(feePaidDate + "T00:00:00");
+
+        const difference =
+            paidDate - lastDate;
 
         lateDays = Math.max(
-            Math.floor(difference / (1000 * 60 * 60 * 24)),
+            Math.floor(
+                difference / (1000 * 60 * 60 * 24)
+            ),
             0
         );
     }
 
-    const totalFine = lateDays * finePerDay;
-    const totalPayable = courseFee + totalFine;
-    const remainingFee = Math.max(totalPayable - feePaid, 0);
+    const totalFine =
+        lateDays * finePerDay;
 
-    console.log("Late Days:", lateDays);
-    console.log("Fine:", totalFine);
-    console.log("Total Payable:", totalPayable);
-    console.log("Remaining Fee:", remainingFee);
+    const totalPayable =
+        courseFee + totalFine;
+
+    const remainingFee =
+        Math.max(totalPayable - feePaid, 0);
+
+    document.getElementById("late_days_display").value =
+        lateDays;
+
+    document.getElementById("fine_per_day_display").value =
+        "₹" + finePerDay;
+
+    document.getElementById("total_fine_display").value =
+        "₹" + totalFine.toFixed(2);
+
+    document.getElementById("total_payable_display").value =
+        "₹" + totalPayable.toFixed(2);
+
+    document.getElementById("remaining_fee_display").value =
+        "₹" + remainingFee.toFixed(2);
 }
 
-document.querySelector('[name="course_fee"]').addEventListener(
-    "input", calculateFee
-);
 
-document.querySelector('[name="last_fee_date"]').addEventListener(
-    "change", calculateFee
-);
+document.querySelector('[name="course_fee"]')
+    .addEventListener("input", calculateFee);
 
-document.querySelector('[name="fee_paid_date"]').addEventListener(
-    "change", calculateFee
-);
+document.querySelector('[name="last_fee_date"]')
+    .addEventListener("change", calculateFee);
 
-document.querySelector('[name="fee_paid"]').addEventListener(
-    "input", calculateFee
-);
+document.querySelector('[name="fee_paid_date"]')
+    .addEventListener("change", calculateFee);
+
+document.querySelector('[name="fee_paid"]')
+    .addEventListener("input", calculateFee);
 
 calculateFee();
 </script>
