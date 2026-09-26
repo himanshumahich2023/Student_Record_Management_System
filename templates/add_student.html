@@ -1,163 +1,62 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add New Student</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            width: 80%;
-            max-width: 800px;
-            margin: 30px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-
-        label {
-            display: block;
-            margin-top: 12px;
-            font-weight: bold;
-        }
-
-        input,
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .links {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .links a {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 5px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="container">
-
-    <h1>Add New Student</h1>
-
-    <form method="POST">
-
-        <label>Name</label>
-        <input type="text" name="name" required>
-
-        <label>Father Name</label>
-        <input type="text" name="father_name" required>
-
-        <label>Roll No</label>
-        <input type="text" name="roll_no" required>
-
-        <label>Course</label>
-        <input type="text" name="course" required>
-
-        <label>Year</label>
-        <select name="year" required>
-            <option value="">Select Year</option>
-            <option value="1st Year">1st Year</option>
-            <option value="2nd Year">2nd Year</option>
-            <option value="3rd Year">3rd Year</option>
-            <option value="4th Year">4th Year</option>
-        </select>
-
-        <label>Semester</label>
-        <select name="semester" required>
-            <option value="">Select Semester</option>
-            <option value="1st Sem">1st Sem</option>
-            <option value="2nd Sem">2nd Sem</option>
-            <option value="3rd Sem">3rd Sem</option>
-            <option value="4th Sem">4th Sem</option>
-            <option value="5th Sem">5th Sem</option>
-            <option value="6th Sem">6th Sem</option>
-            <option value="7th Sem">7th Sem</option>
-            <option value="8th Sem">8th Sem</option>
-        </select>
-
-        <label>Email</label>
-        <input type="email" name="email">
-
-        <label>Phone</label>
-        <input type="text" name="phone">
-
-        <label>City</label>
-        <input type="text" name="city">
-
-        <label>Course Fee</label>
-        <input type="number"
-               name="course_fee"
-               step="0.01"
-               min="0"
-               value="0">
-
-        <label>Last Fee Date</label>
-        <input type="date" name="last_fee_date">
-
-        <label>Fee Paid Date</label>
-        <input type="date" name="fee_paid_date">
-
-        <label>Fee Paid</label>
-        <input type="number"
-               name="fee_paid"
-               step="0.01"
-               min="0"
-               value="0">
-
-        <button type="submit">
-            Add Student
-        </button>
-
-    </form>
-
-    <div class="links">
-        <a href="/students">View Students</a>
-        <a href="/">Back Home</a>
-    </div>
-
 </div>
+
+<script>
+function calculateFee() {
+    const courseFee = parseFloat(
+        document.querySelector('[name="course_fee"]').value
+    ) || 0;
+
+    const lastFeeDate = document.querySelector('[name="last_fee_date"]').value;
+    const feePaidDate = document.querySelector('[name="fee_paid_date"]').value;
+
+    const feePaid = parseFloat(
+        document.querySelector('[name="fee_paid"]').value
+    ) || 0;
+
+    const finePerDay = 50;
+
+    let lateDays = 0;
+
+    if (lastFeeDate && feePaidDate) {
+        const lastDate = new Date(lastFeeDate);
+        const paidDate = new Date(feePaidDate);
+
+        const difference = paidDate - lastDate;
+
+        lateDays = Math.max(
+            Math.floor(difference / (1000 * 60 * 60 * 24)),
+            0
+        );
+    }
+
+    const totalFine = lateDays * finePerDay;
+    const totalPayable = courseFee + totalFine;
+    const remainingFee = Math.max(totalPayable - feePaid, 0);
+
+    console.log("Late Days:", lateDays);
+    console.log("Fine:", totalFine);
+    console.log("Total Payable:", totalPayable);
+    console.log("Remaining Fee:", remainingFee);
+}
+
+document.querySelector('[name="course_fee"]').addEventListener(
+    "input", calculateFee
+);
+
+document.querySelector('[name="last_fee_date"]').addEventListener(
+    "change", calculateFee
+);
+
+document.querySelector('[name="fee_paid_date"]').addEventListener(
+    "change", calculateFee
+);
+
+document.querySelector('[name="fee_paid"]').addEventListener(
+    "input", calculateFee
+);
+
+calculateFee();
+</script>
 
 </body>
 </html>
